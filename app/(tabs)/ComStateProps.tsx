@@ -1,14 +1,12 @@
 import React, { useState, useRef } from 'react';
-import {View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Dimensions,} from 'react-native';
-
-// CHILD COMPONENT (CounterCard)
-// Dumb component lang ito - walang sariling state.
-// Lahat ng makikita dito ay galing sa PROPS ng Parent:
-// yung value ay DATA pababa (parent state - child)
-// yung onIncrement - FUNCTION pataas (child - parent state)
-// then ang onDecrement - FUNCTION pataas (child - parent state)
-// itonng onReset - FUNCTION pataas (child - parent state)
-// itong onHoldStart/onHoldEnd - para sa tuloy-tuloy na ang bilang pataas o pababa habang naka-hold ang button
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  SafeAreaView,
+  Dimensions,
+} from 'react-native';
 
 type HoldDirection = 'up' | 'down';
 
@@ -21,6 +19,51 @@ interface CounterCardProps {
   onHoldEnd: () => void;
 }
 
+const PixelBlock: React.FC<{ color: string; shadow?: boolean }> = ({
+  color,
+  shadow,
+}) => (
+  <View
+    style={[
+      styles.pixelBlock,
+      { backgroundColor: color },
+      shadow && styles.pixelBlockShadow,
+    ]}
+  />
+);
+
+const GrassStrip: React.FC = () => {
+  const grassColors = ['#6EC93F', '#5AB52E', '#7BD64A', '#4F9E27'];
+  const blocks = Array.from({ length: 16 });
+  return (
+    <View style={styles.grassStripRow}>
+      {blocks.map((_, i) => (
+        <PixelBlock
+          key={`grass-${i}`}
+          color={grassColors[i % grassColors.length]}
+          shadow={i % 3 === 0}
+        />
+      ))}
+    </View>
+  );
+};
+
+const DirtStrip: React.FC = () => {
+  const dirtColors = ['#8B5A2B', '#7A4A1F', '#9C6B36', '#6E4420'];
+  const blocks = Array.from({ length: 16 });
+  return (
+    <View style={styles.dirtStripRow}>
+      {blocks.map((_, i) => (
+        <PixelBlock
+          key={`dirt-${i}`}
+          color={dirtColors[i % dirtColors.length]}
+          shadow={i % 4 === 1}
+        />
+      ))}
+    </View>
+  );
+};
+
 const CounterCard: React.FC<CounterCardProps> = ({
   value,
   onIncrement,
@@ -32,22 +75,25 @@ const CounterCard: React.FC<CounterCardProps> = ({
   return (
     <View style={styles.childCard}>
       <View style={styles.childTag}>
-        <Text style={styles.childTagText}>CHILD COMPONENT </Text>
+        <Text style={styles.childTagText}>CHILD COMPONENT</Text>
       </View>
 
       <View style={styles.displayRow}>
-        {/* Kiosk-style na malaking number display, para kita ko na agad siya */}
         <View style={styles.numberWrap}>
           <Text style={styles.numberLabel}>VALUE</Text>
           <Text style={styles.numberText}>{value}</Text>
         </View>
       </View>
 
-      {/* Yung Increment / Decrement side-by-side, like kiosk control pad lang ganern */}
       <View style={styles.padRow}>
         <TouchableOpacity
-          style={[styles.padButton, styles.decrementButton]}
+          style={[
+            styles.padButton,
+            styles.decrementButton,
+            value <= 0 && styles.padButtonDisabled,
+          ]}
           activeOpacity={0.85}
+          disabled={value <= 0}
           onPress={onDecrement}
           onLongPress={() => onHoldStart('down')}
           onPressOut={onHoldEnd}
@@ -79,13 +125,10 @@ const CounterCard: React.FC<CounterCardProps> = ({
         <Text style={styles.resetLabel}>RESET COUNT</Text>
       </TouchableOpacity>
 
-      <Text style={styles.holdHint}> THANK YOU SIR JASON! </Text>
+      <Text style={styles.holdHint}>THANK YOU SIR JASON!</Text>
     </View>
   );
 };
-
-// Ang child ay hindi nagbabago ng state diretso - tumatawag
-// lang ito ng function na pinasa bilang props, at ang parent
 
 const BASE_VALUE = 100;
 const HOLD_INTERVAL_MS = 90;
@@ -103,65 +146,75 @@ const ComStateProps: React.FC = () => {
   };
 
   const increment = () => setValue((prev) => prev + 1);
-  const decrement = () => setValue((prev) => prev - 1);
+  const decrement = () => setValue((prev) => Math.max(0, prev - 1));
 
   const reset = () => {
     clearHold();
     setValue(BASE_VALUE);
   };
 
-  // tinatawag ito kapag long press - para tuloy tuloy ang pag-increment o pag-decrement habang naka-hold
   const startHold = (direction: HoldDirection) => {
     clearHold();
     holdTimer.current = setInterval(() => {
-      setValue((prev) => (direction === 'up' ? prev + 1 : prev - 1));
+      setValue((prev) => {
+        if (direction === 'up') return prev + 1;
+        const next = prev - 1;
+        if (next <= 0) {
+          clearHold();
+          return 0;
+        }
+        return next;
+      });
     }, HOLD_INTERVAL_MS);
   };
 
-  // Bali ito ay ang tinatawag pag binitawan na ang daliri sa button
   const endHold = () => clearHold();
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={[styles.screen, { minHeight: SCREEN_HEIGHT }]}>
         <View style={styles.parentCard}>
-          <View style={styles.parentTag}>
-            <Text style={styles.parentTagText}>PARENT COMPONENT</Text>
-          </View>
+          <GrassStrip />
 
-          <Text style={styles.screenTitle}> JOSHUA P. RAMIREZ </Text>
-          <Text style={styles.screenSubtitle}>
-            COMPONENTS | PROPERTIES | STATE 
-          </Text>
-
-          {/* STATE PANEL - ipinapakita ang live value ng state sa parent */}
-          <View style={styles.statePanel}>
-            <Text style={styles.statePanelLabel}>CURRENT STATE</Text>
-            <Text style={styles.statePanelValue}>{value}</Text>
-            <View style={styles.statePanelBarTrack}>
-              <View
-                style={[
-                  styles.statePanelBarFill,
-                  {
-                    width: `${Math.max(
-                      4,
-                      Math.min(100, (value / (BASE_VALUE * 4)) * 100)
-                    )}%`,
-                  },
-                ]}
-              />
+          <View style={styles.parentBody}>
+            <View style={styles.parentTag}>
+              <Text style={styles.parentTagText}>PARENT COMPONENT</Text>
             </View>
+
+            <Text style={styles.screenTitle}>JOSHUA P. RAMIREZ</Text>
+            <Text style={styles.screenSubtitle}>
+              COMPONENTS{'  '}•{'  '}PROPERTIES{'  '}•{'  '}STATE
+            </Text>
+
+            <View style={styles.statePanel}>
+              <Text style={styles.statePanelLabel}>CURRENT STATE</Text>
+              <Text style={styles.statePanelValue}>{value}</Text>
+              <View style={styles.statePanelBarTrack}>
+                <View
+                  style={[
+                    styles.statePanelBarFill,
+                    {
+                      width: `${Math.max(
+                        4,
+                        Math.min(100, (value / (BASE_VALUE * 4)) * 100)
+                      )}%`,
+                    },
+                  ]}
+                />
+              </View>
+            </View>
+
+            <CounterCard
+              value={value}
+              onIncrement={increment}
+              onDecrement={decrement}
+              onReset={reset}
+              onHoldStart={startHold}
+              onHoldEnd={endHold}
+            />
           </View>
 
-          {/* CHILD COMPONENT - props pababa, function calls pataas */}
-          <CounterCard
-            value={value}
-            onIncrement={increment}
-            onDecrement={decrement}
-            onReset={reset}
-            onHoldStart={startHold}
-            onHoldEnd={endHold}
-          />
+          <DirtStrip />
         </View>
       </View>
     </SafeAreaView>
@@ -170,81 +223,101 @@ const ComStateProps: React.FC = () => {
 
 export default ComStateProps;
 
-// STYLESHEET na ginamit ko para sa buong screen, pati na rin sa parent at child components
-
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0B0E1A',
+    backgroundColor: '#1B1B1B',
   },
   screen: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
   },
 
-  // PARENT CARD ITO (like kiosk frame)
+  pixelBlock: {
+    flex: 1,
+    height: 12,
+  },
+  pixelBlockShadow: {
+    opacity: 0.65,
+  },
+  grassStripRow: {
+    flexDirection: 'row',
+    width: '100%',
+  },
+  dirtStripRow: {
+    flexDirection: 'row',
+    width: '100%',
+  },
+
   parentCard: {
     width: '100%',
     maxWidth: 440,
-    backgroundColor: '#11142B',
-    borderWidth: 2,
-    borderColor: '#2A2F66',
-    borderRadius: 24,
-    paddingTop: 16,
-    paddingBottom: 16,
-    paddingHorizontal: 16,
+    backgroundColor: '#3B3B3B',
+    borderWidth: 4,
+    borderColor: '#1B1B1B',
+    overflow: 'hidden',
+  },
+  parentBody: {
+    paddingTop: 14,
+    paddingBottom: 14,
+    paddingHorizontal: 14,
     alignItems: 'center',
   },
   parentTag: {
     alignSelf: 'center',
-    backgroundColor: '#FF7A45',
-    paddingHorizontal: 14,
-    paddingVertical: 5,
-    borderRadius: 999,
-    marginBottom: 8,
+    backgroundColor: '#8B5A2B',
+    borderWidth: 3,
+    borderColor: '#4A2E12',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginBottom: 10,
   },
   parentTagText: {
-    color: '#FFFFFF',
-    fontWeight: '800',
-    fontSize: 10,
+    color: '#FFE08A',
+    fontWeight: '900',
+    fontSize: 9,
     letterSpacing: 1,
     textAlign: 'center',
   },
   screenTitle: {
     color: '#FFFFFF',
-    fontSize: 19,
+    fontSize: 16,
     fontWeight: '900',
-    letterSpacing: 0.5,
-    marginBottom: 2,
+    letterSpacing: 1,
+    marginBottom: 4,
     textAlign: 'center',
+    textShadowColor: '#000000',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 0,
   },
   screenSubtitle: {
-    color: '#7C82B8',
-    fontSize: 11,
-    marginBottom: 14,
+    color: '#A7E08A',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 12,
     textAlign: 'center',
   },
 
   statePanel: {
-    backgroundColor: '#0B0E1A',
-    borderWidth: 2,
-    borderColor: '#1ED9A4',
-    borderRadius: 16,
+    backgroundColor: '#1B1B1B',
+    borderWidth: 3,
+    borderColor: '#6EC93F',
     paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginBottom: 14,
+    paddingHorizontal: 14,
+    marginBottom: 12,
     width: '100%',
     alignItems: 'center',
   },
   statePanelLabel: {
-    color: '#1ED9A4',
-    fontWeight: '800',
-    fontSize: 10,
+    color: '#6EC93F',
+    fontWeight: '900',
+    fontSize: 9,
     letterSpacing: 1.4,
-    marginBottom: 2,
+    marginBottom: 4,
     textAlign: 'center',
   },
   statePanelValue: {
@@ -253,126 +326,124 @@ const styles = StyleSheet.create({
     fontSize: 26,
     marginBottom: 8,
     textAlign: 'center',
+    textShadowColor: '#000000',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 0,
   },
   statePanelBarTrack: {
-    height: 6,
+    height: 10,
     width: '100%',
-    borderRadius: 3,
-    backgroundColor: '#15234E',
+    backgroundColor: '#4A2E12',
+    borderWidth: 2,
+    borderColor: '#1B1B1B',
     overflow: 'hidden',
   },
   statePanelBarFill: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#1ED9A4',
+    height: '100%',
+    backgroundColor: '#6EC93F',
   },
 
-  // ---------- CHILD CARD (kiosk control panel) ----------
   childCard: {
-    backgroundColor: '#171B3D',
-    borderWidth: 2,
-    borderColor: '#3D5BFF',
-    borderRadius: 20,
-    paddingTop: 14,
-    paddingBottom: 16,
-    paddingHorizontal: 16,
+    backgroundColor: '#5A4632',
+    borderWidth: 3,
+    borderColor: '#1B1B1B',
+    paddingTop: 12,
+    paddingBottom: 14,
+    paddingHorizontal: 14,
     width: '100%',
     alignItems: 'center',
   },
   childTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
     alignSelf: 'center',
-    backgroundColor: '#3D5BFF',
+    backgroundColor: '#1B1B1B',
+    borderWidth: 3,
+    borderColor: '#6EC93F',
     paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 999,
+    paddingVertical: 6,
     marginBottom: 12,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#FFFFFF',
-    marginRight: 6,
   },
   childTagText: {
     color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 10,
-    letterSpacing: 0.6,
+    fontWeight: '900',
+    fontSize: 9,
+    letterSpacing: 1,
     textAlign: 'center',
   },
 
   displayRow: {
     width: '100%',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 14,
   },
 
-  // ---------- NUMBER DISPLAY (digital readout look) ----------
   numberWrap: {
     width: '100%',
-    backgroundColor: '#05060F',
-    borderWidth: 2,
-    borderColor: '#3D5BFF',
-    borderRadius: 18,
+    backgroundColor: '#1B1B1B',
+    borderWidth: 4,
+    borderColor: '#8B5A2B',
     paddingVertical: 16,
     alignItems: 'center',
   },
   numberLabel: {
-    color: '#5C6BFF',
-    fontWeight: '800',
-    fontSize: 11,
+    color: '#FFE08A',
+    fontWeight: '900',
+    fontSize: 10,
     letterSpacing: 2,
     marginBottom: 4,
     textAlign: 'center',
   },
   numberText: {
-    color: '#5CE1E6',
+    color: '#6EC93F',
     fontWeight: '900',
-    fontSize: 54,
+    fontSize: 48,
     textAlign: 'center',
     fontVariant: ['tabular-nums'],
+    textShadowColor: '#000000',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 0,
   },
 
   padRow: {
     flexDirection: 'row',
     width: '100%',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   padButton: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 16,
-    paddingVertical: 20,
-    borderWidth: 2,
+    paddingVertical: 18,
+    borderWidth: 3,
   },
   incrementButton: {
-    backgroundColor: '#3D8BFF',
-    borderColor: '#1A5FC4',
-    marginLeft: 7,
+    backgroundColor: '#6EC93F',
+    borderColor: '#2E5E14',
+    marginLeft: 6,
   },
   decrementButton: {
-    backgroundColor: '#FF4D8D',
-    borderColor: '#C2155F',
-    marginRight: 7,
+    backgroundColor: '#C0392B',
+    borderColor: '#6E1A10',
+    marginRight: 6,
+  },
+  padButtonDisabled: {
+    opacity: 0.4,
   },
   padIcon: {
     color: '#FFFFFF',
     fontWeight: '900',
-    fontSize: 30,
+    fontSize: 28,
     marginBottom: 2,
     textAlign: 'center',
+    textShadowColor: '#000000',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 0,
   },
   padLabel: {
     color: '#FFFFFF',
-    fontWeight: '800',
-    fontSize: 12,
-    letterSpacing: 1,
+    fontWeight: '900',
+    fontSize: 10.5,
+    letterSpacing: 0.6,
     textAlign: 'center',
   },
 
@@ -381,30 +452,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
-    backgroundColor: '#262B57',
-    borderWidth: 2,
-    borderColor: '#454C9C',
-    borderRadius: 14,
+    backgroundColor: '#7A7A7A',
+    borderWidth: 3,
+    borderColor: '#3D3D3D',
     paddingVertical: 13,
   },
   resetIcon: {
     color: '#FFFFFF',
     fontWeight: '900',
-    fontSize: 16,
+    fontSize: 15,
     marginRight: 8,
     textAlign: 'center',
   },
   resetLabel: {
     color: '#FFFFFF',
-    fontWeight: '800',
-    fontSize: 13,
+    fontWeight: '900',
+    fontSize: 11.5,
     letterSpacing: 1,
     textAlign: 'center',
   },
 
   holdHint: {
-    color: '#5C6299',
-    fontSize: 10.5,
+    color: '#C9C9C9',
+    fontSize: 9.5,
+    fontWeight: '700',
     textAlign: 'center',
     marginTop: 10,
   },
