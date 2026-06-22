@@ -1,8 +1,12 @@
 import React, { useState, useRef } from 'react';
 import {View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Dimensions,} from 'react-native';
 
+// COMPONENT
+// Custom type para sa direction ng long-press (up o down lang)
 type HoldDirection = 'up' | 'down';
 
+// PROPS
+// Dito nilista ang lahat ng PROPS na ipinapasa PAPUNTA sa CHILD COMPONENT
 interface CounterCardProps {
   value: number;
   onIncrement: () => void;
@@ -12,6 +16,7 @@ interface CounterCardProps {
   onHoldEnd: () => void;
 }
 
+// COMPONENT
 const PixelBlock: React.FC<{ color: string; shadow?: boolean }> = ({
   color,
   shadow,
@@ -25,6 +30,7 @@ const PixelBlock: React.FC<{ color: string; shadow?: boolean }> = ({
   />
 );
 
+// COMPONENT
 const GrassStrip: React.FC = () => {
   const grassColors = ['#6EC93F', '#5AB52E', '#7BD64A', '#4F9E27'];
   const blocks = Array.from({ length: 16 });
@@ -41,6 +47,7 @@ const GrassStrip: React.FC = () => {
   );
 };
 
+// COMPONENT
 const DirtStrip: React.FC = () => {
   const dirtColors = ['#8B5A2B', '#7A4A1F', '#9C6B36', '#6E4420'];
   const blocks = Array.from({ length: 16 });
@@ -57,8 +64,11 @@ const DirtStrip: React.FC = () => {
   );
 };
 
+
 const CounterCard: React.FC<CounterCardProps> = ({
   value,
+  // PROPS
+  // mga FUNCTIONS na PUMAPATAAS mula sa CHILD papunta sa PARENT STATE
   onIncrement,
   onDecrement,
   onReset,
@@ -74,11 +84,16 @@ const CounterCard: React.FC<CounterCardProps> = ({
       <View style={styles.displayRow}>
         <View style={styles.numberWrap}>
           <Text style={styles.numberLabel}>VALUE</Text>
+          {/* FUNCTIONALITY
+              Ito ang OUTPUT na nakikita ng user - ang value na
+              PROPS DATA (galing sa Parent State), ipinapakita dito sa Child */}
           <Text style={styles.numberText}>{value}</Text>
         </View>
       </View>
 
       <View style={styles.padRow}>
+        {/* FUNCTIONALITY
+            MINUS COUNT button - tap = bumababa ng 1 ang count.*/}
         <TouchableOpacity
           style={[
             styles.padButton,
@@ -96,6 +111,8 @@ const CounterCard: React.FC<CounterCardProps> = ({
           <Text style={styles.padLabel}>MINUS COUNT</Text>
         </TouchableOpacity>
 
+        {/* FUNCTIONALITY
+            ADD COUNT button - tap = dumadagdag ng 1 ang count.*/}
         <TouchableOpacity
           style={[styles.padButton, styles.incrementButton]}
           activeOpacity={0.85}
@@ -109,6 +126,8 @@ const CounterCard: React.FC<CounterCardProps> = ({
         </TouchableOpacity>
       </View>
 
+      {/* FUNCTIONALITY
+          RESET COUNT button - ibinabalik ang count sa BASE_VALUE which is 100 yan siya */}
       <TouchableOpacity
         style={styles.resetButton}
         activeOpacity={0.85}
@@ -127,7 +146,11 @@ const BASE_VALUE = 100;
 const HOLD_INTERVAL_MS = 90;
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
+
+// So, dito lang makikita ang SOURCE OF TRUTH (state) ng buong app.
 const ComStateProps: React.FC = () => {
+  // STATE MANAGEMENT
+  // Ginagamit ang useState() hook para i-store at i-track ang kasalukuyang bilang
   const [value, setValue] = useState<number>(BASE_VALUE);
   const holdTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
