@@ -3,12 +3,8 @@
 import React, { useState, useRef } from 'react';
 import {View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Dimensions,} from 'react-native';
 
-// COMPONENT
-// So, sa custom type na ito kase para sa direction ng long-press (up o down lang)
 type HoldDirection = 'up' | 'down';
 
-// PROPS
-// Dito kase nilista ang lahat ng PROPS na ipinapasa PAPUNTA sa CHILD COMPONENT
 interface CounterCardProps {
   value: number;
   onIncrement: () => void;
@@ -66,8 +62,6 @@ const DirtStrip: React.FC = () => {
 
 const CounterCard: React.FC<CounterCardProps> = ({
   value,
-  // PROPS
-  // mga FUNCTIONS na PUMAPATAAS mula sa CHILD papunta sa PARENT STATE
   onIncrement,
   onDecrement,
   onReset,
@@ -83,16 +77,11 @@ const CounterCard: React.FC<CounterCardProps> = ({
       <View style={styles.displayRow}>
         <View style={styles.numberWrap}>
           <Text style={styles.numberLabel}>VALUE</Text>
-          {/* FUNCTIONALITY
-              so, ito ang OUTPUT na nakikita ng user - ang value na
-              PROPS DATA (galing sa Parent State), ipinapakita dito sa Child */}
           <Text style={styles.numberText}>{value}</Text>
         </View>
       </View>
 
       <View style={styles.padRow}>
-        {/* FUNCTIONALITY
-            MINUS COUNT button - tap = bumababa ng 1 ang count.*/}
         <TouchableOpacity
           style={[
             styles.padButton,
@@ -110,8 +99,6 @@ const CounterCard: React.FC<CounterCardProps> = ({
           <Text style={styles.padLabel}>MINUS COUNT</Text>
         </TouchableOpacity>
 
-        {/* FUNCTIONALITY
-            ADD COUNT button - tap = dumadagdag ng 1 ang count.*/}
         <TouchableOpacity
           style={[styles.padButton, styles.incrementButton]}
           activeOpacity={0.85}
@@ -125,8 +112,6 @@ const CounterCard: React.FC<CounterCardProps> = ({
         </TouchableOpacity>
       </View>
 
-      {/* FUNCTIONALITY
-          RESET COUNT button - ibinabalik ang count sa BASE_VALUE which is 100 yan siya */}
       <TouchableOpacity
         style={styles.resetButton}
         activeOpacity={0.85}
@@ -145,11 +130,7 @@ const BASE_VALUE = 100;
 const HOLD_INTERVAL_MS = 90;
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-
-// So, dito lang makikita ang SOURCE OF TRUTH (state) ng buong app.
 const ComStateProps: React.FC = () => {
-  // STATE MANAGEMENT
-  // Ginagamit ang useState() hook para i-store at i-track ang kasalukuyang bilang
   const [value, setValue] = useState<number>(BASE_VALUE);
   const holdTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
