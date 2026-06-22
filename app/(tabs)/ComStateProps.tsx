@@ -1,12 +1,14 @@
+// MINECRAFT THEME PO ITO :>
+
 import React, { useState, useRef } from 'react';
 import {View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Dimensions,} from 'react-native';
 
 // COMPONENT
-// Custom type para sa direction ng long-press (up o down lang)
+// So, sa custom type na ito kase para sa direction ng long-press (up o down lang)
 type HoldDirection = 'up' | 'down';
 
 // PROPS
-// Dito nilista ang lahat ng PROPS na ipinapasa PAPUNTA sa CHILD COMPONENT
+// Dito kase nilista ang lahat ng PROPS na ipinapasa PAPUNTA sa CHILD COMPONENT
 interface CounterCardProps {
   value: number;
   onIncrement: () => void;
@@ -16,7 +18,6 @@ interface CounterCardProps {
   onHoldEnd: () => void;
 }
 
-// COMPONENT
 const PixelBlock: React.FC<{ color: string; shadow?: boolean }> = ({
   color,
   shadow,
@@ -30,7 +31,6 @@ const PixelBlock: React.FC<{ color: string; shadow?: boolean }> = ({
   />
 );
 
-// COMPONENT
 const GrassStrip: React.FC = () => {
   const grassColors = ['#6EC93F', '#5AB52E', '#7BD64A', '#4F9E27'];
   const blocks = Array.from({ length: 16 });
@@ -47,7 +47,6 @@ const GrassStrip: React.FC = () => {
   );
 };
 
-// COMPONENT
 const DirtStrip: React.FC = () => {
   const dirtColors = ['#8B5A2B', '#7A4A1F', '#9C6B36', '#6E4420'];
   const blocks = Array.from({ length: 16 });
@@ -85,7 +84,7 @@ const CounterCard: React.FC<CounterCardProps> = ({
         <View style={styles.numberWrap}>
           <Text style={styles.numberLabel}>VALUE</Text>
           {/* FUNCTIONALITY
-              Ito ang OUTPUT na nakikita ng user - ang value na
+              so, ito ang OUTPUT na nakikita ng user - ang value na
               PROPS DATA (galing sa Parent State), ipinapakita dito sa Child */}
           <Text style={styles.numberText}>{value}</Text>
         </View>
